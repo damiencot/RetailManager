@@ -1,10 +1,11 @@
 ﻿using Caliburn.Micro;
-using RMDesktopUI.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RMDesktopUI.Helpers;
+using RMDesktopUI.Library.Api;
 
 namespace RMDesktopUI.ViewModels
 {
@@ -13,11 +14,12 @@ namespace RMDesktopUI.ViewModels
         private string _username;
         private string _password;
         private IAPIHelper _apiHelper;
+        private IEventAggregator _events;
 
-
-        public LoginViewModel(IAPIHelper apiHelper)
+        public LoginViewModel(IAPIHelper apiHelper, IEventAggregator events)
         {
             _apiHelper = apiHelper;
+            _events = events;
         }
 
         public string Username
@@ -87,11 +89,16 @@ namespace RMDesktopUI.ViewModels
         {
             try
             {
+                ErrorMessage = "";
                 var result = await _apiHelper.Authenticate(Username, Password);
+
+                await _apiHelper.GetLoggedInUserInfo(result.Access_Token);
+
+                //_events.PublishOnUIThread(new LogOnEvent());
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ErrorMessage = ex.Message;
             }
         }
     }
